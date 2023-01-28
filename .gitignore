@@ -1,5 +1,6 @@
 data/
 creds/
+to-delete*
 
 .DS_Store
 .idea/
