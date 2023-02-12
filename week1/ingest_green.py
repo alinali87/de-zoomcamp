@@ -22,7 +22,7 @@ def main(params):
 
     engine = create_engine(f'postgresql://{user}:{password}@{host}:{port}/{db}')
     engine.connect()
-    df_iter = pd.read_csv(csv_name, parse_dates=['tpep_pickup_datetime', 'tpep_dropoff_datetime'], iterator=True, chunksize=100000)
+    df_iter = pd.read_csv(csv_name, parse_dates=['lpep_pickup_datetime', 'lpep_dropoff_datetime'], iterator=True, chunksize=100000)
 
     df = next(df_iter)
     df.head(0).to_sql(name=table_name, con=engine, if_exists='replace')

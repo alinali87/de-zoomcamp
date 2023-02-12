@@ -1,7 +1,7 @@
-# week 1: draft notes
+# week 1
 
 ### build image from Dockerfile in current directory
-docker build -t dez:pandas .
+docker build -t my_python:3.9 .
 
 ### check what images i have locally
 docker images
@@ -10,18 +10,92 @@ docker images
 docker network ls
 
 ### check that my dockerized python script works
-docker run -it dez:pandas 2023-01-26
+docker run -it my_python:3.9 2023-01-26
 
 ### run postgres
-```
 docker run -it \
--e POSTGRES_USER="root" \
--e POSTGRES_PASSWORD="root" \
--e POSTGRES_DB="ny_taxi" \
--v $(pwd)/ny_taxi_postgres_data:/var/lib/postgresql/data \
--p 5432:5432
-postgres:13
-```
+  -e POSTGRES_USER="root" \
+  -e POSTGRES_PASSWORD="root" \
+  -e POSTGRES_DB="ny_taxi" \
+  -v $(pwd)/ny_taxi_postgres_data:/var/lib/postgresql/data \
+  -p 5432:5432 \
+  --name pgdb \
+  --network pg-network \
+  postgres:13
+
+### run pgAdmin
+docker run -it \
+  -e PGADMIN_DEFAULT_EMAIL="admin@admin.com" \
+  -e PGADMIN_DEFAULT_PASSWORD="root" \
+  -p 8080:80 \
+  --name pgadmin \
+  --network pg-network \
+  dpage/pgadmin4
+
+### convert jupyter notebook to python script
+jupyter nbconvert --to=script test_postgres.ipynb
+
+#### if you get a ValueError: No template sub-directory with name 'script' found in the following paths
+ln -s /opt/homebrew/share/jupyter/nbconvert ~/Library/Jupyter
+
+### run python script to load taxi data from internet to local postgres
+python3 ingest_data.py \
+    --user=root \
+    --password=root \
+    --host=localhost \
+    --port=5432 \
+    --db=ny_taxi \
+    --table_name=yellow_trip_data \
+    --url=https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow/yellow_tripdata_2021-01.csv.gz
+
+python3 ingest_green.py \
+    --user=root \
+    --password=root \
+    --host=localhost \
+    --port=5432 \
+    --db=ny_taxi \
+    --table_name=green_trip_data \
+    --url=https://github.com/DataTalksClub/nyc-tlc-data/releases/download/green/green_tripdata_2019-01.csv.gz
+
+
+
+### run python script to load zones data from internet to local postgres
+python3 ingest_zones.py \
+    --user=root \
+    --password=root \
+    --host=localhost \
+    --port=5432 \
+    --db=ny_taxi \
+    --table_name=zones \
+    --url=https://github.com/DataTalksClub/nyc-tlc-data/releases/download/misc/taxi_zone_lookup.csv
+
+### run python script to load data from local http.server to local postgres
+python3 ingest_data.py \
+    --user=root \
+    --password=root \
+    --host=localhost \
+    --port=5432 \
+    --db=ny_taxi \
+    --table_name=yellow_trip_data \
+    --url=http://localhost:8000/yellow_tripdata_2021-01.csv.gz
+
+
+### run dockerized script to load data from internet to local postgres
+docker run -it \
+    --network=pg-network \
+    my_ingest_data:0.0.1 \
+    --user=root \
+    --password=root \
+    --host=pgdb \
+    --port=5432 \
+    --db=ny_taxi \
+    --table_name=yellow_trip_data \
+    --url=https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow/yellow_tripdata_2021-01.csv.gz
+
+
+### docker compose
+docker-compose up
+docker-compose down
 
 ### problems
 PROBLEM: Q3. How many taxi trips were totally made on January 15? --> I got 40-50 K trips, which doesn't match any options 17-21 K trips  

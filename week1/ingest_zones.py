@@ -5,6 +5,7 @@ from time import time
 from sqlalchemy import create_engine
 
 
+
 def main(params):
     user = params.user
     password = params.password
@@ -13,21 +14,18 @@ def main(params):
     db = params.db
     table_name = params.table_name
     url = params.url
-    if url.endswith('csv.gz'):
-        csv_name = 'output.csv.gz'
-    else:
-        csv_name = 'output.csv'
+
+    csv_name = 'output.csv'
 
     os.system(f'wget {url} -O {csv_name}')
 
     engine = create_engine(f'postgresql://{user}:{password}@{host}:{port}/{db}')
     engine.connect()
-    df_iter = pd.read_csv(csv_name, parse_dates=['tpep_pickup_datetime', 'tpep_dropoff_datetime'], iterator=True, chunksize=100000)
+    df_iter = pd.read_csv(csv_name, iterator=True, chunksize=100000)
 
     df = next(df_iter)
     df.head(0).to_sql(name=table_name, con=engine, if_exists='replace')
     df.to_sql(name=table_name, con=engine, if_exists='append')
-
     while True:
         t_start = time()
         try:
