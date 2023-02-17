@@ -1,6 +1,7 @@
 data/
 creds/
 to-delete*
+dez-env
 
 .DS_Store
 .idea/
