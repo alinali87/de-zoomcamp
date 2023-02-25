@@ -5,6 +5,9 @@ creds/
 to-delete*
 .ipynb_checkpoints
 
+# env
+dez-env
+
 # os and ide
 .DS_Store
 .idea/
