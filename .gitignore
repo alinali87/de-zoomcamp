@@ -1,7 +1,10 @@
+# data and temp files
 data/
+output
 creds/
 to-delete*
+.ipynb_checkpoints
 
+# os and ide
 .DS_Store
 .idea/
-output
